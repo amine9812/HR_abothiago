@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <div><h3>Organisation interne</h3><p class="text-soft">Maintenez les departements, services et postes utilises par les fiches employes.</p></div>
+    </div>
+    <ul class="nav module-tabs" role="tablist">
+        <li class="nav-item"><a class="nav-link {% if active_tab == 'departements' %}active{% endif %}" href="?tab=departements">Departements</a></li>
+        <li class="nav-item"><a class="nav-link {% if active_tab == 'services' %}active{% endif %}" href="?tab=services">Services</a></li>
+        <li class="nav-item"><a class="nav-link {% if active_tab == 'postes' %}active{% endif %}" href="?tab=postes">Postes</a></li>
+    </ul>
+
+    {% if active_tab == 'departements' %}
+        <div class="compact-panel">
+            <table class="table table-compact align-middle"><thead><tr><th>Libelle</th><th>Description</th><th class="text-end">Actions</th></tr></thead><tbody>
+            {% for item in departements %}<tr><td><strong>{{ item.libelle }}</strong></td><td>{{ item.description }}</td><td class="text-end"><form method="post" action="{% url 'departement_delete' item.id %}" class="confirm-delete d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>{% empty %}<tr><td colspan="3" class="empty-state">Aucun departement.</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+        <form class="row g-2 mt-3" method="post" action="{% url 'departement_save' %}">{% csrf_token %}<div class="col-md-4">{{ departement_form.libelle }}</div><div class="col-md-6">{{ departement_form.description }}</div><div class="col-md-2"><button class="btn btn-accent w-100">Ajouter</button></div></form>
+    {% elif active_tab == 'services' %}
+        <div class="compact-panel">
+            <table class="table table-compact align-middle"><thead><tr><th>Service</th><th>Departement</th><th>Description</th><th class="text-end">Actions</th></tr></thead><tbody>
+            {% for item in services %}<tr><td><strong>{{ item.libelle }}</strong></td><td>{{ item.departement|default:"-" }}</td><td>{{ item.description }}</td><td class="text-end"><form method="post" action="{% url 'service_delete' item.id %}" class="confirm-delete d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>{% empty %}<tr><td colspan="4" class="empty-state">Aucun service.</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+        <form class="row g-2 mt-3" method="post" action="{% url 'service_save' %}">{% csrf_token %}<div class="col-md-3">{{ service_form.libelle }}</div><div class="col-md-3">{{ service_form.departement }}</div><div class="col-md-4">{{ service_form.description }}</div><div class="col-md-2"><button class="btn btn-accent w-100">Ajouter</button></div></form>
+    {% else %}
+        <div class="compact-panel">
+            <table class="table table-compact align-middle"><thead><tr><th>Poste</th><th>Niveau</th><th>Rang</th><th>Manager</th><th>Direction</th><th class="text-end">Actions</th></tr></thead><tbody>
+            {% for item in postes %}<tr><td><strong>{{ item.libelle }}</strong></td><td>{{ item.niveau|default:"-" }}</td><td>{{ item.rang_hierarchique }}</td><td>{% if item.est_manager %}Oui{% else %}Non{% endif %}</td><td>{% if item.est_direction %}Oui{% else %}Non{% endif %}</td><td class="text-end"><form method="post" action="{% url 'poste_delete' item.id %}" class="confirm-delete d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>{% empty %}<tr><td colspan="6" class="empty-state">Aucun poste.</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+        <form class="row g-2 mt-3" method="post" action="{% url 'poste_save' %}">{% csrf_token %}<div class="col-md-2">{{ poste_form.libelle }}</div><div class="col-md-2">{{ poste_form.niveau }}</div><div class="col-md-2">{{ poste_form.rang_hierarchique }}</div><div class="col-md-2 form-check d-flex align-items-center gap-2">{{ poste_form.est_manager }} <label>Manager</label></div><div class="col-md-2 form-check d-flex align-items-center gap-2">{{ poste_form.est_direction }} <label>Direction</label></div><div class="col-md-2"><button class="btn btn-accent w-100">Ajouter</button></div></form>
+    {% endif %}
+</div>
+{% endblock %}

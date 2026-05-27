@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel mb-3">
+    <form method="get" class="filter-row">
+        <select name="statut" class="form-select" style="max-width: 220px">
+            <option value="">Toutes les taches</option>
+            {% for value,label in statuts %}<option value="{{ value }}" {% if statut_filtre == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-accent"><i class="bi bi-funnel"></i> Filtrer</button>
+    </form>
+</div>
+
+{% if can_manage %}
+<div class="form-panel mb-3">
+    <div class="panel-header"><h3>Assigner une tache</h3></div>
+    <form method="post" action="{% url 'task_create' %}" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-4">{{ form.titre.label_tag }}{{ form.titre }}</div>
+        <div class="col-md-2">{{ form.priorite.label_tag }}{{ form.priorite }}</div>
+        <div class="col-md-3">{{ form.employe.label_tag }}{{ form.employe }}</div>
+        <div class="col-md-3">{{ form.departement.label_tag }}{{ form.departement }}</div>
+        <div class="col-md-4">{{ form.shift.label_tag }}{{ form.shift }}</div>
+        <div class="col-md-3">{{ form.date_limite.label_tag }}{{ form.date_limite }}</div>
+        <div class="col-12">{{ form.description.label_tag }}{{ form.description }}</div>
+        <div class="col-12"><button class="btn btn-accent"><i class="bi bi-list-check"></i> Creer la tache</button></div>
+    </form>
+</div>
+{% endif %}
+
+<div class="panel">
+    <div class="panel-header"><h3>Suivi des taches</h3></div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Tache</th><th>Affectation</th><th>Priorite</th><th>Limite</th><th>Statut</th><th></th></tr></thead>
+            <tbody>
+            {% for task in tasks %}
+                <tr>
+                    <td><strong>{{ task.titre }}</strong><br><small class="text-soft">{{ task.description|truncatechars:90 }}</small></td>
+                    <td>{{ task.employe.nom_complet|default:task.departement.libelle|default:"Equipe" }}</td>
+                    <td>{{ task.get_priorite_display }}</td>
+                    <td>{{ task.date_limite|date:"d/m/Y H:i"|default:"-" }}</td>
+                    <td><span class="status-badge status-{{ task.statut }}">{{ task.get_statut_display }}</span></td>
+                    <td>
+                        <form method="post" action="{% url 'task_status' task.pk %}" class="d-flex gap-1">
+                            {% csrf_token %}
+                            <select name="statut" class="form-select form-select-sm">
+                                {% for value,label in statuts %}<option value="{{ value }}" {% if task.statut == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                            </select>
+                            <button class="btn btn-outline-dark btn-sm" title="Mettre a jour"><i class="bi bi-check2"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="empty-state">Aucune tache.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

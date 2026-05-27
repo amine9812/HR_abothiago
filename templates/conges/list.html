@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <div><h3>Conges & Absences</h3><p class="mb-0">Demandes de conge selon votre role.</p></div>
+        <a href="{% url 'conge_create' %}" class="btn btn-accent"><i class="bi bi-plus-lg"></i> Nouvelle demande</a>
+    </div>
+    <form class="filter-row" method="get">
+        <select class="form-select" name="statut">
+            <option value="">Tous les statuts</option>
+            {% for value,label in statuts %}<option value="{{ value }}" {% if statut_filtre == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select class="form-select" name="type">
+            <option value="">Tous les types</option>
+            {% for value,label in types %}<option value="{{ value }}" {% if type_filtre == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-outline-secondary">Filtrer</button>
+    </form>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead><tr><th>Employe</th><th>Type</th><th>Dates</th><th>Motif</th><th>Statut</th><th>Reponse</th><th></th></tr></thead>
+            <tbody>
+            {% for demande in demandes %}
+                <tr>
+                    <td>{{ demande.employe.nom_complet }}</td>
+                    <td>{{ demande.type }}</td>
+                    <td>{{ demande.date_debut }} au {{ demande.date_fin }}</td>
+                    <td>{{ demande.motif|default:"-" }}</td>
+                    <td><span class="status-badge status-{{ demande.statut }}">{{ demande.statut }}</span></td>
+                    <td>{{ demande.commentaire_reponse|default:"-" }}</td>
+                    <td class="text-end">
+                        {% if demande.statut == "EN_ATTENTE" and utilisateur_connecte.role == "EMPLOYE" %}
+                            <form method="post" action="{% url 'conge_cancel' demande.id %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary">Annuler</button></form>
+                        {% endif %}
+                        {% if utilisateur_connecte.role == "ADMIN" or utilisateur_connecte.role == "RESPONSABLE_RH" or utilisateur_connecte.role == "RESPONSABLE_HIERARCHIQUE" %}
+                            {% if demande.statut == "EN_ATTENTE" %}
+                            <form method="post" action="{% url 'conge_validate' demande.id %}" class="d-inline">{% csrf_token %}<input type="hidden" name="commentaire" value=""><button class="btn btn-sm btn-success"><i class="bi bi-check-lg"></i></button></form>
+                            <form method="post" action="{% url 'conge_refuse' demande.id %}" class="d-inline">{% csrf_token %}<input type="hidden" name="commentaire" value=""><button class="btn btn-sm btn-danger"><i class="bi bi-x-lg"></i></button></form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}<tr><td colspan="7" class="empty-state">Aucune demande de conge.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

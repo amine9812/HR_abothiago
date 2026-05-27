@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+    <div class="panel-header">
+        <div><h3>Demandes administratives</h3><p class="mb-0">Suivi des attestations, documents et reponses RH.</p></div>
+        <a href="{% url 'demande_create' %}" class="btn btn-accent"><i class="bi bi-plus-lg"></i> Nouvelle demande</a>
+    </div>
+    <form class="filter-row" method="get">
+        <select class="form-select" name="statut">
+            <option value="">Tous les statuts</option>
+            {% for value,label in statuts %}<option value="{{ value }}" {% if statut_filtre == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-outline-secondary">Filtrer</button>
+    </form>
+    {% for demande in demandes %}
+        <details class="demande-detail mb-2">
+            <summary>
+                <div>
+                    <strong>{{ demande.type_demande }}</strong>
+                    <small>{{ demande.employe.nom_complet }} - {{ demande.date_creation|date:"d/m/Y H:i" }}</small>
+                </div>
+                <span class="status-badge status-{{ demande.statut }}">{{ demande.get_statut_display }}</span>
+            </summary>
+            <div class="demande-detail-body">
+                <div class="row g-3">
+                    <div class="col-lg-8">
+                        <h4 class="form-section-title">Demande</h4>
+                        <p class="mb-3">{{ demande.description|linebreaksbr }}</p>
+                        <div class="text-soft small">
+                            Demandeur: {{ demande.employe.nom_complet }}<br>
+                            Date de creation: {{ demande.date_creation|date:"d/m/Y H:i" }}<br>
+                            {% if demande.traitee_par %}Traitee par: {{ demande.traitee_par.nom_complet }}<br>{% endif %}
+                            {% if demande.date_traitement %}Dernier traitement: {{ demande.date_traitement|date:"d/m/Y H:i" }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <h4 class="form-section-title">Pieces jointes</h4>
+                        {% for document in demande.documents.all %}
+                            <a class="btn btn-sm btn-outline-secondary mb-2 w-100 text-start" href="{% url 'document_download' document.id %}"><i class="bi bi-download"></i> {{ document.nom_original }}</a>
+                        {% empty %}
+                            <div class="empty-state">Aucune piece jointe.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if demande.reponse %}
+                    <div class="compact-panel mt-3">
+                        <strong>Reponse RH</strong>
+                        <p class="mb-0">{{ demande.reponse|linebreaksbr }}</p>
+                    </div>
+                {% endif %}
+                {% if utilisateur_connecte.role == "ADMIN" or utilisateur_connecte.role == "RESPONSABLE_RH" %}
+                    {% if demande.statut != "VALIDEE" and demande.statut != "REFUSEE" and demande.statut != "CLOTUREE" %}
+                        <form method="post" action="{% url 'demande_process' demande.id %}" class="form-panel border-0 shadow-none p-0 mt-3">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="statut-{{ demande.id }}">Statut</label>
+                                    <select class="form-select" id="statut-{{ demande.id }}" name="statut">
+                                        <option value="EN_COURS" {% if demande.statut == "EN_COURS" %}selected{% endif %}>En cours</option>
+                                        <option value="VALIDEE">Valider</option>
+                                        <option value="REFUSEE">Refuser</option>
+                                        <option value="CLOTUREE">Cloturer</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="reponse-{{ demande.id }}">Reponse RH</label>
+                                    <textarea class="form-control" id="reponse-{{ demande.id }}" name="reponse" rows="4" placeholder="Ecrire une reponse claire pour l'employe...">{{ demande.reponse }}</textarea>
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button class="btn btn-accent">Traiter</button>
+                                </div>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="empty-state mt-3">Cette demande est finalisee.</div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </details>
+    {% empty %}<div class="empty-state">Aucune demande administrative.</div>{% endfor %}
+</div>
+{% endblock %}

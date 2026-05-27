@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+    <ul class="nav module-tabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#msg-ouvertes" type="button">{% if utilisateur_connecte.role == "ADMIN" or utilisateur_connecte.role == "RESPONSABLE_RH" %}Conversations ouvertes{% else %}Mes conversations{% endif %}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#msg-nouveau" type="button">Nouveau message</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#msg-cloturees" type="button">Conversations cloturees</button></li>
+        {% if utilisateur_connecte.role == "ADMIN" or utilisateur_connecte.role == "RESPONSABLE_RH" %}<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#msg-attente" type="button">En attente de reponse</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#msg-historique" type="button">Historique</button></li>{% endif %}
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="msg-ouvertes">{% for c in conversations %}{% if utilisateur_connecte.role == "ADMIN" or utilisateur_connecte.role == "RESPONSABLE_RH" %}{% if c.statut == "ouverte" %}<a class="request-item" href="{% url 'rh_conversation_detail' c.id %}"><div><strong>{{ c.sujet }}</strong><small>{{ c.employe.nom_complet }} - {{ c.date_derniere_reponse }}</small></div><i class="bi bi-chevron-right"></i></a>{% endif %}{% else %}{% if c.statut != "cloturee" %}<a class="request-item" href="{% url 'rh_conversation_detail' c.id %}"><div><strong>{{ c.sujet }}</strong><small>{{ c.get_statut_display }} - {{ c.date_derniere_reponse }}</small></div><i class="bi bi-chevron-right"></i></a>{% endif %}{% endif %}{% empty %}<div class="empty-state">Aucune conversation.</div>{% endfor %}</div>
+        <div class="tab-pane fade" id="msg-nouveau"><form method="post" action="{% url 'rh_conversation_create' %}" class="form-panel border-0 shadow-none p-0">{% csrf_token %}<h3 class="form-section-title">Contacter les RH</h3>{{ form.as_p }}<button class="btn btn-accent">Envoyer</button></form></div>
+        <div class="tab-pane fade" id="msg-cloturees">{% for c in conversations %}{% if c.statut == "cloturee" %}<a class="request-item" href="{% url 'rh_conversation_detail' c.id %}"><div><strong>{{ c.sujet }}</strong><small>{{ c.employe.nom_complet }}</small></div></a>{% endif %}{% endfor %}</div>
+        {% if utilisateur_connecte.role == "ADMIN" or utilisateur_connecte.role == "RESPONSABLE_RH" %}<div class="tab-pane fade" id="msg-attente">{% for c in conversations %}{% if c.statut == "en_attente" %}<a class="request-item" href="{% url 'rh_conversation_detail' c.id %}"><div><strong>{{ c.sujet }}</strong><small>{{ c.employe.nom_complet }}</small></div></a>{% endif %}{% endfor %}</div><div class="tab-pane fade" id="msg-historique">{% for c in conversations %}<a class="request-item" href="{% url 'rh_conversation_detail' c.id %}"><div><strong>{{ c.sujet }}</strong><small>{{ c.employe.nom_complet }} - {{ c.statut }}</small></div></a>{% endfor %}</div>{% endif %}
+    </div>
+</div>
+{% endblock %}

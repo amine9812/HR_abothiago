@@ -1,0 +1,5 @@
+<div class="table-responsive compact-panel"><table class="table table-compact align-middle"><thead><tr><th>Nom</th><th>Categorie</th><th>Employe</th><th>Taille</th><th>Date</th><th></th></tr></thead><tbody>
+{% for document in documents %}
+    <tr><td>{{ document.nom_original }}</td><td>{{ document.categorie }}</td><td>{{ document.employe|default:"-" }}</td><td>{{ document.taille }}</td><td>{{ document.date_ajout }}</td><td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'document_download' document.id %}"><i class="bi bi-download"></i></a><form method="post" action="{% url 'document_delete' document.id %}" class="d-inline confirm-delete">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>
+{% empty %}<tr><td colspan="6" class="empty-state">Aucun document.</td></tr>{% endfor %}
+</tbody></table></div>

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="rh-dashboard">
+    <div class="dashboard-welcome rh-card">
+        <div>
+            <span class="eyebrow">Espace RH</span>
+            <h2>Bonjour, {{ utilisateur_connecte.employe.prenom|default:"Utilisateur" }}</h2>
+            <p class="page-subtitle">Vue d'ensemble adaptee a votre role : {{ role_label }}.</p>
+        </div>
+        <div class="hero-actions">
+            <a href="{% url 'notifications_list' %}" class="btn btn-rh-soft"><i class="bi bi-bell"></i>{{ notifications_dashboard }} notification(s)</a>
+            <a href="{% url 'planning' %}" class="btn btn-rh-primary"><i class="bi bi-calendar-week"></i>Planning</a>
+        </div>
+    </div>
+
+    {% if is_rh_dashboard %}
+        <div class="rh-stat-grid">
+            <a class="rh-stat-card" href="{% url 'employes_list' %}"><i class="bi bi-people"></i><span>Employes actifs</span><strong>{{ total_employes_actifs }}</strong><small>Dossiers suivis</small></a>
+            <a class="rh-stat-card warning" href="{% url 'conges_list' %}"><i class="bi bi-calendar2-check"></i><span>Conges en attente</span><strong>{{ conges_en_attente }}</strong><small>A valider</small></a>
+            <a class="rh-stat-card info" href="{% url 'demandes_list' %}"><i class="bi bi-file-earmark-text"></i><span>Demandes admin</span><strong>{{ demandes_admin_en_attente }}</strong><small>En attente</small></a>
+            <a class="rh-stat-card success" href="{% url 'attendance' %}"><i class="bi bi-clock-history"></i><span>Presences aujourd'hui</span><strong>{{ presences_aujourdhui }}</strong><small>{{ retards_aujourdhui }} retard(s)</small></a>
+            <a class="rh-stat-card" href="{% url 'formations_admin' %}"><i class="bi bi-mortarboard"></i><span>Formations</span><strong>{{ formations_assignees }}</strong><small>Affectations actives</small></a>
+            <a class="rh-stat-card warning" href="{% url 'shop' %}"><i class="bi bi-box-seam"></i><span>Commandes materiel</span><strong>{{ commandes_en_attente }}</strong><small>A traiter</small></a>
+            <a class="rh-stat-card danger" href="{% url 'reclamations' %}"><i class="bi bi-exclamation-circle"></i><span>Reclamations</span><strong>{{ reclamations_a_traiter }}</strong><small>Ouvertes</small></a>
+            <a class="rh-stat-card info" href="{% url 'payroll_analytics' %}"><i class="bi bi-graph-up-arrow"></i><span>Paie</span><strong>{{ salary_summary }}</strong><small>Remunerations</small></a>
+        </div>
+
+        <div class="rh-action-grid">
+            <a href="{% url 'employe_create' %}" class="rh-action-card"><i class="bi bi-person-plus"></i><strong>Ajouter un employe</strong><span>Creer un nouveau dossier RH</span></a>
+            <a href="{% url 'conges_list' %}" class="rh-action-card"><i class="bi bi-check2-circle"></i><strong>Valider les conges</strong><span>{{ conges_en_attente }} demande(s)</span></a>
+            <a href="{% url 'demandes_list' %}" class="rh-action-card"><i class="bi bi-inbox"></i><strong>Traiter les demandes</strong><span>{{ demandes_admin_en_attente }} dossier(s)</span></a>
+            <a href="{% url 'news_list' %}" class="rh-action-card"><i class="bi bi-megaphone"></i><strong>Publier une actualite</strong><span>Informer les equipes</span></a>
+            <a href="{% url 'formations_admin' %}" class="rh-action-card"><i class="bi bi-mortarboard"></i><strong>Assigner une formation</strong><span>Developper les competences</span></a>
+            <a href="{% url 'position_management' %}" class="rh-action-card"><i class="bi bi-briefcase"></i><strong>Gerer les postes</strong><span>Affectations et managers</span></a>
+        </div>
+    {% elif is_manager_dashboard %}
+        <div class="rh-stat-grid">
+            <a class="rh-stat-card" href="{% url 'employes_list' %}"><i class="bi bi-people"></i><span>Mon equipe</span><strong>{{ team_count }}</strong><small>Collaborateurs directs</small></a>
+            <a class="rh-stat-card warning" href="{% url 'conges_list' %}"><i class="bi bi-calendar2-check"></i><span>Conges equipe</span><strong>{{ conges_en_attente }}</strong><small>A valider</small></a>
+            <a class="rh-stat-card success" href="{% url 'attendance' %}"><i class="bi bi-clock-history"></i><span>Presences equipe</span><strong>{{ team_presences }}</strong><small>Aujourd'hui</small></a>
+            <a class="rh-stat-card danger" href="{% url 'attendance' %}"><i class="bi bi-alarm"></i><span>Retards equipe</span><strong>{{ team_retards }}</strong><small>Aujourd'hui</small></a>
+            <a class="rh-stat-card info" href="{% url 'team_tasks' %}"><i class="bi bi-list-check"></i><span>Taches ouvertes</span><strong>{{ taches_ouvertes }}</strong><small>Equipe</small></a>
+            <a class="rh-stat-card" href="{% url 'rh_messages' %}"><i class="bi bi-chat-dots"></i><span>Messages</span><strong>{{ messages_non_lus }}</strong><small>Conversations</small></a>
+        </div>
+    {% else %}
+        <div class="rh-stat-grid">
+            <a class="rh-stat-card success" href="{% url 'conges_list' %}"><i class="bi bi-calendar-heart"></i><span>Solde de conges</span><strong>{{ solde_conge.jours_disponibles }}</strong><small>Jours disponibles</small></a>
+            <a class="rh-stat-card" href="{% url 'shop' %}"><i class="bi bi-stars"></i><span>Points disponibles</span><strong>{{ compte_points.solde_points }}</strong><small>Solde actuel</small></a>
+            <a class="rh-stat-card info" href="{% url 'attendance' %}"><i class="bi bi-clock-history"></i><span>Dernier pointage</span><strong>{{ dernier_pointage.statut|default:"-" }}</strong><small>{{ dernier_pointage.date|default:"Aucun pointage" }}</small></a>
+            <a class="rh-stat-card warning" href="{% url 'demandes_list' %}"><i class="bi bi-hourglass-split"></i><span>Demandes en attente</span><strong>{{ mes_demandes_en_attente }}</strong><small>Conges et admin</small></a>
+            <a class="rh-stat-card" href="{% url 'my_trainings' %}"><i class="bi bi-mortarboard"></i><span>Formations</span><strong>{{ formations_assignees }}</strong><small>A suivre</small></a>
+            <a class="rh-stat-card info" href="{% url 'rh_messages' %}"><i class="bi bi-chat-dots"></i><span>Messages RH</span><strong>{{ messages_non_lus }}</strong><small>Conversations</small></a>
+            <a class="rh-stat-card success" href="{% url 'planning' %}"><i class="bi bi-calendar-week"></i><span>Planning</span><strong>{{ shifts_a_venir }}</strong><small>Shift(s) a venir</small></a>
+            <a class="rh-stat-card" href="{% url 'shop' %}"><i class="bi bi-box-seam"></i><span>Mon materiel</span><strong>{{ materiel_employe }}</strong><small>Commande(s) livree(s)</small></a>
+        </div>
+
+        <div class="rh-action-grid">
+            <a href="{% url 'attendance' %}" class="rh-action-card"><i class="bi bi-clock-history"></i><strong>Pointer</strong><span>Entree ou sortie du jour</span></a>
+            <a href="{% url 'conge_create' %}" class="rh-action-card"><i class="bi bi-calendar-plus"></i><strong>Demander un conge</strong><span>Selon votre solde</span></a>
+            <a href="{% url 'rh_messages' %}" class="rh-action-card"><i class="bi bi-chat-dots"></i><strong>Envoyer un message RH</strong><span>Contact confidentiel</span></a>
+            <a href="{% url 'shop' %}" class="rh-action-card"><i class="bi bi-bag-check"></i><strong>Voir la boutique</strong><span>Materiel et points</span></a>
+        </div>
+    {% endif %}
+
+    <div class="row g-3">
+        <div class="col-xl-7">
+            <div class="rh-card h-100">
+                <div class="rh-card-header">
+                    <div><span class="eyebrow">Activite</span><h3>Demandes recentes</h3></div>
+                    <a href="{% url 'conges_list' %}" class="btn btn-rh-soft btn-sm">Voir tout</a>
+                </div>
+                <div class="rh-list">
+                    {% for demande in recent_conges %}
+                        <a class="request-item" href="{% url 'conges_list' %}">
+                            <div><strong>{{ demande.employe.nom_complet }}</strong><small>{{ demande.type }} du {{ demande.date_debut }} au {{ demande.date_fin }}</small></div>
+                            <span class="status-badge status-{{ demande.statut }}">{{ demande.statut }}</span>
+                        </a>
+                    {% empty %}
+                        <div class="rh-empty-state"><i class="bi bi-inbox"></i><strong>Aucune demande recente</strong><span>Les nouvelles demandes apparaitront ici.</span></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-5">
+            <div class="rh-card h-100">
+                <div class="rh-card-header">
+                    <div><span class="eyebrow">Communication</span><h3>Actualites recentes</h3></div>
+                    <a href="{% url 'news_list' %}" class="btn btn-rh-soft btn-sm">Actualites</a>
+                </div>
+                <div class="rh-list">
+                    {% for a in actualites_recentes %}
+                        <a class="request-item" href="{% url 'news_list' %}">
+                            <div><strong>{{ a.titre }}</strong><small>{{ a.date_publication|date:"d/m/Y" }}</small></div>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    {% empty %}
+                        <div class="rh-empty-state"><i class="bi bi-megaphone"></i><strong>Aucune actualite publiee</strong><span>Les annonces RH apparaitront ici.</span></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
